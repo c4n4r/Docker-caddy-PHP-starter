@@ -1,0 +1,49 @@
+version: '3.5'
+
+services:
+  caddy:
+    image: caddy:2.4.5
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./:/var/www/html
+    ports:
+      - "8000:8000"
+      - "443:443"
+    depends_on:
+      - php
+    networks:
+      - badger
+  php:
+    build:
+      context: ./
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - badger
+  
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    depends_on:
+      - php
+    networks:
+      - badger
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - badger
+
+networks:
+  badger:
+    driver: bridge
